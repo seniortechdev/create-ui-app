@@ -1,68 +1,75 @@
-import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
-import React, { useEffect, useState } from 'react'
+import { Link, Route, BrowserRouter as Router, Routes, Navigate, Outlet } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 
-import Home from './pages/Home'
-import InterstateTrade from './pages/InterstateTrade'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import StateEconomySearch from './pages/StateEconomySearch'
-import StateSearch from './pages/StateSearch'
+import Home from './pages/Home';
+import InterstateTrade from './pages/InterstateTrade';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import StateEconomySearch from './pages/StateEconomySearch';
+import StateSearch from './pages/StateSearch';
+import * as auth from './api/auth';
+
+const ProtectedRoute = ({ isAllowed, redirectPath = '/', children }: any) => {
+  if (!isAllowed) {
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  return children ? children : <Outlet />;
+};
 
 export interface User {
-    id: number
+  id: number;
 }
 
 export interface WithUserProps {
-    user: User | null
+  user: User | null;
 }
 
 function App() {
-    const [sessionUser, setSessionUser] = useState<User | null>(null)
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetch('http://localhost:4000/session', {
-                credentials: 'include',
-            })
-            const user = await response.json()
-            if (user?.id) {
-                setSessionUser(user)
-            }
-        }
-        fetchData()
-    }, [])
-    return (
-        <Router>
-            <div className="App" style={{ margin: '1rem' }}>
-                <header className="App-header">
-                    <h1>Frontend UI</h1>
-                </header>
-                <nav
-                    style={{
-                        borderBottom: 'solid 1px',
-                        paddingBottom: '1rem',
-                        marginBottom: '1rem',
-                    }}
-                >
-                    <Link to="/">Home</Link>|{' '}
-                    <Link to="/states">States Search Example</Link>|{' '}
-                    <Link to="/trade">Interstate Trade Search</Link>|{' '}
-                    <Link to="/economy">State Economy Search</Link>|{' '}
-                    <Link to="/login">Login</Link> |{' '}
-                    <Link to="/signup">Signup</Link> |{' '}
-                </nav>
-                <Routes>
-                    <Route path="/" element={<Home />} />
+  const [sessionUser, setSessionUser] = useState<User | null>(null);
+  useEffect(() => {
+    const loadUser = async () => {
+      const user = await auth.getCurrentUser();
+      console.log('user', user);
+      if (!!user) {
+        setSessionUser(user);
+      }
+    };
+    loadUser();
+  }, []);
 
-                    <Route path="/states" element={<StateSearch />} />
-                    <Route path="/trade" element={<InterstateTrade />} />
-                    <Route path="/economy" element={<StateEconomySearch />} />
+  const protectRoute = (Element: JSX.Element, isAllowed: boolean) => {
+    return <ProtectedRoute isAllowed={isAllowed} children={Element} />;
+  };
 
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                </Routes>
-            </div>
-        </Router>
-    )
+  return (
+    <Router>
+      <div className='App' style={{ margin: '1rem' }}>
+        <header className='App-header'>
+          <h1>Frontend UI</h1>
+        </header>
+        <nav
+          style={{
+            borderBottom: 'solid 1px',
+            paddingBottom: '1rem',
+            marginBottom: '1rem',
+          }}
+        >
+          <Link to='/'>Home</Link>| <Link to='/states'>States Search Example</Link>| <Link to='/trade'>Interstate Trade Search</Link>| <Link to='/economy'>State Economy Search</Link>| <Link to='/login'>Login</Link> | <Link to='/signup'>Signup</Link> |{' '}
+        </nav>
+        <Routes>
+          <Route path='/' element={<Home />} />
+
+          <Route path='/states' element={protectRoute(<StateSearch />, !!sessionUser)} />
+          <Route path='/trade' element={protectRoute(<InterstateTrade />, !!sessionUser)} />
+          <Route path='/economy' element={protectRoute(<StateEconomySearch />, !!sessionUser)} />
+
+          <Route path='/login' element={protectRoute(<Login />, !sessionUser)} />
+          <Route path='/signup' element={protectRoute(<Signup />, !sessionUser)} />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;

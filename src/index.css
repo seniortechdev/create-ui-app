@@ -11,3 +11,33 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.form .error-message {
+    color: #f81616;
+    font-size: 13px;
+    display: block;
+}
+
+.form .field-invalid {
+  border: 1px solid #f81616;
+}
+
+.state-search-container table {
+  width: 100%;
+}
+
+.state-search-container table thead
+{
+  text-align: left;
+  height: 42px;
+}
+
+.state-search-container table tbody tr
+{
+  height: 42px;
+}
+
+.state-search-container table tbody tr td
+{
+  border-top: 1px solid #d0d0d0;
+}
